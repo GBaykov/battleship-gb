@@ -21,7 +21,6 @@ export const messageHandler = (
       sendError(ws, "Unknown type f message");
     }
   } catch (error) {
-    console.error("Error handling message:", error);
-    //   sendError(ws, 'Invalid message format');
+    console.error("Error while handling message:", error);
   }
 };

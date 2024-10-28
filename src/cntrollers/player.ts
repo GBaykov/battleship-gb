@@ -2,7 +2,11 @@ import { WebSocket } from "ws";
 import { Player } from "../classes/player";
 import { players } from "../db/db";
 
-export function handleRegistration(ws: WebSocket, data: any, clientId: string) {
+export const handleRegistration = (
+  ws: WebSocket,
+  data: any,
+  clientId: string
+) => {
   const { name, password } = JSON.parse(data);
 
   console.log("handleRegistration", name, password, data, players.keys());
@@ -55,4 +59,4 @@ export function handleRegistration(ws: WebSocket, data: any, clientId: string) {
       data: JSON.stringify(messageData.data),
     })
   );
-}
+};

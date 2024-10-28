@@ -1,9 +1,36 @@
 import { WebSocket } from "ws";
 import { Room } from "../classes/room";
-import { rooms } from "../db/db";
-import { sendMessage } from "../helpers";
+import { players, rooms } from "../db/db";
+import { Message, sendMessage } from "../helpers";
 
-export function initNewRoom(): Room {
+export const updateRoom = () => {
+  const filtered_rooms = Array.from(rooms.values()).filter(
+    (room) => room.players.length === 1
+  );
+  const roomList = filtered_rooms.map((room) => ({
+    roomId: room.roomId,
+    roomUsers: room.players.map((clientId) => {
+      const player = players.get(clientId);
+      return {
+        name: player?.name,
+        index: clientId,
+      };
+    }),
+  }));
+
+  const message: Message = {
+    type: "update_room",
+    data: roomList,
+    id: 0,
+  };
+  for (const player of players.values()) {
+    player.ws?.send(
+      JSON.stringify({ ...message, data: JSON.stringify(message.data) })
+    );
+  }
+};
+
+export const initNewRoom = (): Room => {
   const lastRoomId =
     rooms.size > 0
       ? Math.max(...Array.from(rooms.keys()).map((roomId) => parseInt(roomId)))
@@ -11,18 +38,20 @@ export function initNewRoom(): Room {
   const room = new Room((lastRoomId + 1).toString());
   rooms.set(room.roomId, room);
   return room;
-}
+};
 
-export function handleCreateRoom(ws: WebSocket, clientId: string) {
+export const handleCreateRoom = (ws: WebSocket, clientId: string) => {
   const room = initNewRoom();
   room.players.push(clientId);
-}
+  updateRoom();
+};
 
-export function handleAddUser(ws: WebSocket, data: any, clientId: string) {
+export const handleAddUser = (ws: WebSocket, data: any, clientId: string) => {
   const { indexRoom } = JSON.parse(data);
   const room = rooms.get(indexRoom);
   if (room && room.players.length < 2) {
     room.players.push(clientId);
+    updateRoom();
   } else {
     sendMessage(ws, {
       type: "error",
@@ -30,4 +59,4 @@ export function handleAddUser(ws: WebSocket, data: any, clientId: string) {
       id: 0,
     });
   }
-}
+};
