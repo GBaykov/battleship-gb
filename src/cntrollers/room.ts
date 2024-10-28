@@ -78,6 +78,7 @@ export const handleAddUser = (ws: WebSocket, data: any, clientId: string) => {
   if (room && room.players.length < 2) {
     room.players.push(clientId);
     updateRoom();
+    startGame(room);
   } else {
     sendMessage(ws, {
       type: "error",

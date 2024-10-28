@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 import { handleRegistration } from "../cntrollers/player";
 import { Message, sendError } from "../helpers";
 import { handleAddUser, handleCreateRoom } from "../cntrollers/room";
+import { handleAddShips, handleAttack } from "../cntrollers/game";
 
 export const messageHandler = (
   ws: WebSocket,
@@ -17,6 +18,12 @@ export const messageHandler = (
       handleCreateRoom(ws, clientId);
     } else if (type === "add_user_to_room") {
       handleAddUser(ws, data, clientId);
+    } else if (type === "add_user_to_room") {
+      handleAddUser(ws, data, clientId);
+    } else if (type === "add_ships") {
+      handleAddShips(ws, data);
+    } else if (type === "attack") {
+      handleAttack(ws, data);
     } else {
       sendError(ws, "Unknown type f message");
     }
