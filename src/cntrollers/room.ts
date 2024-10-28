@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 import { Room } from "../classes/room";
 import { players, rooms } from "../db/db";
 import { Message, sendMessage } from "../helpers";
+import { initNewGame } from "./game";
 
 export const updateRoom = () => {
   const filtered_rooms = Array.from(rooms.values()).filter(
@@ -30,6 +31,31 @@ export const updateRoom = () => {
   }
 };
 
+export const startGame = (room: Room) => {
+  room.gameStarted = true;
+
+  const game = initNewGame(room.players);
+  const [player1Id, player2Id] = room.players;
+  const player1 = players.get(player1Id);
+  const player2 = players.get(player2Id);
+
+  const message = {
+    type: "create_game",
+    data: {
+      idGame: game.idGame,
+      idPlayer: player1Id,
+    },
+    id: 0,
+  };
+  if (player1?.ws) {
+    sendMessage(player1.ws, message);
+  }
+  if (player2?.ws) {
+    sendMessage(player2.ws, message);
+  }
+  message.data.idPlayer = player2Id;
+};
+
 export const initNewRoom = (): Room => {
   const lastRoomId =
     rooms.size > 0
@@ -55,7 +81,7 @@ export const handleAddUser = (ws: WebSocket, data: any, clientId: string) => {
   } else {
     sendMessage(ws, {
       type: "error",
-      data: { errorText: "Cannot get access room" },
+      data: { errorText: "Cannot get access to room" },
       id: 0,
     });
   }
